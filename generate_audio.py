@@ -57,3 +57,27 @@ async def imlak_announcements():
     if attempt==3: raise
     await asyncio.sleep(3*(attempt+1))
 asyncio.run(imlak_announcements())
+
+async def reading_audio():
+ match=re.search(r'bookData=(\[.*?\]);',html,re.S)
+ if not match: return
+ units=json.loads(match.group(1))
+ sem=asyncio.Semaphore(4)
+ async def one(path,phrase):
+  if path.exists() and path.stat().st_size>0: return
+  async with sem:
+   for attempt in range(4):
+    try:
+     await edge_tts.Communicate(phrase,'ms-MY-YasminNeural').save(str(path))
+     return
+    except Exception:
+     if path.exists(): path.unlink()
+     if attempt==3: raise
+     await asyncio.sleep(3*(attempt+1))
+ for u in units:
+  folder=pathlib.Path('audio/6/reading')/str(u['unit'])
+  folder.mkdir(parents=True,exist_ok=True)
+  rows=[s.strip().split() for p in u['sections'] for s in re.findall(r'[^.!?]+[.!?]*[”’]?',p) if s.strip()]
+  await asyncio.gather(*(one(folder/(str(i)+'.mp3'),' '.join(w)) for i,w in enumerate(rows)))
+  await asyncio.gather(*(one(folder/(f'{i}-{j}.mp3'),word) for i,w in enumerate(rows) for j,word in enumerate(w)))
+asyncio.run(reading_audio())
