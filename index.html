@@ -181,7 +181,7 @@ function smartShow(word,i,j){if(imlakActive)return;stop();smartAudio.pause();sma
 smartPanel.addEventListener('close',()=>{smartAudio.pause();window.speechSynthesis?.cancel()});
 const smartToggle=el('button','Kamus Pintar 智能词典：OFF');let smartEnabled=false;smartToggle.onclick=()=>{if(imlakActive)return;smartEnabled=!smartEnabled;smartToggle.textContent='Kamus Pintar 智能词典：'+(smartEnabled?'ON':'OFF')};$('lyrics').before(smartToggle);
 $('lyrics').addEventListener('click',e=>{if(!smartEnabled||imlakActive)return;const c=e.target.closest('.char');if(!c)return;const l=c.closest('.lyric'),i=[...$('lyrics').querySelectorAll('.lyric')].indexOf(l),j=[...l.querySelectorAll('.char')].indexOf(c);if(!data[i]?.[j])return;e.preventDefault();e.stopImmediatePropagation();smartShow(data[i][j].word,i,j)},true);
-const smartObserver=new MutationObserver(()=>{smartToggle.hidden=$('lyrics').hidden||getComputedStyle($('lyrics')).display==='none'||imlakActive||$('grade').value!=='6';if(smartToggle.hidden&&smartPanel.open)smartClose()});smartObserver.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','style','disabled','class']});smartToggle.hidden=$('grade').value!=='6';
+const smartObserver=new MutationObserver(()=>{const hide=imlakActive||$('grade').value!=='6'||!$('lyrics').getClientRects().length;if(smartToggle.hidden!==hide)smartToggle.hidden=hide;if(smartToggle.hidden&&smartPanel.open)smartClose()});smartObserver.observe(document.body,{subtree:true,attributes:true,attributeFilter:['hidden','style','disabled','class']});smartToggle.hidden=$('grade').value!=='6';
 
 const sentenceHelp=el('button','Pemahaman Ayat · 逐句理解：OFF');let sentenceMode=false;
 $('lyrics').before(sentenceHelp);
