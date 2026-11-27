@@ -135,4 +135,13 @@ const imlakOldStart=dstart;dstart=function(items){if(imlakActive)return;imlakSet
 const imlakOldTab=$('dictTab').onclick;$('dictTab').onclick=()=>{if(imlakActive)return;imlakOldTab()};
 for(const id of ['readTab','vocabTab','quizTab','compTab','gramTab','oralTab','writeTab','recordTab','analysisTab']){const old=$(id).onclick;$(id).onclick=()=>{if(imlakActive)return;old()}}
 window.addEventListener('beforeunload',e=>{if(imlakActive){e.preventDefault();e.returnValue=''}});
+
+const fullUnitRows=unitVocabulary6.flatMap((g,i)=>g.rows.map((r,j)=>({row:r,i,j,title:g.title})));
+unitVocabulary6.push({theme:'Semua Kosa Kata · 全部词汇',title:'Semua 621 perkataan / frasa · 全部621条',rows:fullUnitRows.map(x=>x.row)});
+const allUnitIndex=unitVocabulary6.length-1;
+unitVocabularyChoice=allUnitIndex;
+const allOldPlay=unitPlay;
+unitPlay=function(word,rate=.85,status){if(unitVocabularyChoice!==allUnitIndex)return allOldPlay(word,rate,status);const x=fullUnitRows.find(x=>x.row[0]===word);if(!x)return;const previous=unitVocabularyChoice;try{unitVocabularyChoice=x.i;allOldPlay(word,rate,status)}finally{unitVocabularyChoice=previous}};
+const allOldRender=renderVocab;
+renderVocab=function(){allOldRender();if($('grade').value!=='6'||unitVocabularyChoice!==allUnitIndex)return;const grid=$('vocabGrid'),cards=[...grid.querySelectorAll('.vcard')];let offset=0;for(const g of unitVocabulary6.slice(0,allUnitIndex)){const title=el('h3',g.title+' · '+g.rows.length+' 条');title.style.gridColumn='1 / -1';grid.insertBefore(title,cards[offset]);offset+=g.rows.length}};
 </script></body></html>
