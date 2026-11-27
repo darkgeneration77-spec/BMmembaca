@@ -41,3 +41,19 @@ async def unit_audio():
      await asyncio.sleep(3*(attempt+1))
  await asyncio.gather(*(one(i,j,row[0]) for i,g in enumerate(groups) for j,row in enumerate(g['rows'])))
 asyncio.run(unit_audio())
+
+async def imlak_announcements():
+ folder=pathlib.Path('audio/imlak-complete')
+ folder.mkdir(parents=True,exist_ok=True)
+ for n in list(range(1,31))+[621]:
+  path=folder/f'{n}.mp3'
+  if path.exists() and path.stat().st_size>0: continue
+  for attempt in range(4):
+   try:
+    await edge_tts.Communicate(f'Tahniah! Murid telah menyelesaikan {n} daripada {n} soalan imlak.','ms-MY-YasminNeural',volume='+20%').save(str(path))
+    break
+   except Exception:
+    if path.exists(): path.unlink()
+    if attempt==3: raise
+    await asyncio.sleep(3*(attempt+1))
+asyncio.run(imlak_announcements())
