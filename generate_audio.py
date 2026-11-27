@@ -18,3 +18,26 @@ async def main():
       if attempt==3: raise
       await asyncio.sleep(3*(attempt+1))
 asyncio.run(main())
+
+import json
+async def unit_audio():
+ match=re.search(r'const unitVocabulary6=(\[.*?\]);',html,re.S)
+ if not match: return
+ groups=json.loads(match.group(1))
+ folder=pathlib.Path('audio/6/units')
+ folder.mkdir(parents=True,exist_ok=True)
+ sem=asyncio.Semaphore(3)
+ async def one(i,j,word):
+  path=folder/f'{i}-{j}.mp3'
+  if path.exists() and path.stat().st_size>0: return
+  async with sem:
+   for attempt in range(4):
+    try:
+     await edge_tts.Communicate(word,'ms-MY-YasminNeural').save(str(path))
+     return
+    except Exception:
+     if path.exists(): path.unlink()
+     if attempt==3: raise
+     await asyncio.sleep(3*(attempt+1))
+ await asyncio.gather(*(one(i,j,row[0]) for i,g in enumerate(groups) for j,row in enumerate(g['rows'])))
+asyncio.run(unit_audio())
