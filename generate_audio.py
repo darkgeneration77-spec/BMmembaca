@@ -62,19 +62,24 @@ async def reading_audio():
  match=re.search(r'bookData=(\[.*?\]);',html,re.S)
  if not match: return
  units=json.loads(match.group(1))
- sem=asyncio.Semaphore(4)
+ sem=asyncio.Semaphore(2)
  async def one(path,phrase):
   if path.exists() and path.stat().st_size>0: return
+  phrase=phrase.strip()
+  if not any(c.isalnum() for c in phrase): return
   async with sem:
-   for attempt in range(4):
+   for attempt in range(5):
     try:
      await edge_tts.Communicate(phrase,'ms-MY-YasminNeural').save(str(path))
      return
-    except Exception:
+    except Exception as e:
      if path.exists(): path.unlink()
-     if attempt==3: raise
+     if attempt==4:
+      print(f'FAILED {path}: {phrase!r}: {e}',flush=True)
+      return
      await asyncio.sleep(3*(attempt+1))
  for u in units:
+  print(f"Generating Unit {u['unit']}",flush=True)
   folder=pathlib.Path('audio/6/reading')/str(u['unit'])
   folder.mkdir(parents=True,exist_ok=True)
   rows=[s.strip().split() for p in u['sections'] for s in re.findall(r'[^.!?]+[.!?]*[”’]?',p) if s.strip()]
